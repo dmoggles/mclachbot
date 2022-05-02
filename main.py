@@ -4,9 +4,12 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi_utils.tasks import repeat_every
 from visualizations.passmap import player_passing_maps, plot_pass_map
-
+from matplotlib import pyplot as plt
 import logging
 from data_models.constants import LEAGUE_NAME_TRANSLATIONS
+import gc
+from functools import partial
+from multiprocessing import Process, Queue
 
 from data_models.data_generators import (
     get_match_for_team_from_whoscored_for_date,
@@ -30,10 +33,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 
-@app.on_event("startup")
-@repeat_every(seconds=60 * 10)
-def reload_data():
-    app.fbref_data.load_data()
+@repeat_every(seconds=10)
+def remove_expired_tokens_task() -> None:
+    gc.collect()
 
 
 @app.get("/")
@@ -87,10 +89,10 @@ def rolling_npxg_team_list(request: Request):
 @app.get("/passmap/{team}/{date}")
 def team_passmap(request: Request, team, date):
     log = logging.getLogger(__name__)
-    
+
     team = team.replace("_", " ").lower()
     log.info(f"Getting pass map for {team} on {date}")
-    
+
     if date != "latest":
         df = get_match_for_team_from_whoscored_for_date(team, date)
     else:
@@ -101,7 +103,15 @@ def team_passmap(request: Request, team, date):
     fig = plot_pass_map(df)
     output = BytesIO()
     fig.savefig(output, format="png", pad_inches=0.1)
-    return Response(output.getvalue(), media_type="image/png")
+    r = Response(output.getvalue(), media_type="image/png")
+    fig.clear()
+    plt.clf()
+    plt.close("all")
+    return r
+
+
+def put_on_queue(f, q):
+    q.put(f())
 
 
 @app.get("/playerpassmap/{team}/{date}")
@@ -114,8 +124,7 @@ def player_passmap(request: Request, team, date):
         df = get_match_for_team_from_whoscored_for_date(team, date)
     else:
         df = get_latest_match_for_team_from_whoscored(team)
-   
-    
+
     log.info(f"got data for {team}")
     log.info("getting position dataframe")
     position_df = get_whoscored_position_df()
@@ -124,29 +133,50 @@ def player_passmap(request: Request, team, date):
         return "no data for this team"
 
     log.info("plotting")
+    # f = partial(player_passing_maps, df, position_df)
+    # q = Queue()
+    # p = Process(target=put_on_queue, args=(f, q))
+    # p.start()
+    # p.join()
+    # fig = q.get()
     fig = player_passing_maps(df, position_df)
     output = BytesIO()
     log.info("saving")
     fig.savefig(output, format="png", pad_inches=0.1)
-    return Response(output.getvalue(), media_type="image/png")
+    r = Response(output.getvalue(), media_type="image/png")
+    fig.clear()
+    plt.clf()
+    plt.close("all")
+    return r
 
 
 @app.get("/passmap")
 def passmaps_idx(request: Request):
-    team_list = sorted([t.replace(' ','_') for t  in get_whoscored_all_teams()])
-    team_name_dictionary = {t: t.replace('_', ' ').title() for t in team_list}
+    team_list = sorted([t.replace(" ", "_") for t in get_whoscored_all_teams()])
+    team_name_dictionary = {t: t.replace("_", " ").title() for t in team_list}
 
-    return templates.TemplateResponse("passmap.html", {"request": request, 'teams': team_list, 'team_name_dict': team_name_dictionary})
+    return templates.TemplateResponse(
+        "passmap.html",
+        {
+            "request": request,
+            "teams": team_list,
+            "team_name_dict": team_name_dictionary,
+        },
+    )
 
-@app.get('/passmap/{team}')
-def passmap_team_page(request:Request, team:str):
-    team = team.replace('_',' ')
-    df = get_whoscored_matches_for_team(team).sort_values('match_date')
-    df['home']=df['home'].apply(lambda x: x.replace('_',' ').title())
-    df['away']=df['away'].apply(lambda x: x.replace('_',' ').title())
-    df['match_date']=df['match_date'].apply(lambda x: x.strftime('%Y-%m-%d'))
-    
+
+@app.get("/passmap/{team}")
+def passmap_team_page(request: Request, team: str):
+    team = team.replace("_", " ")
+    df = get_whoscored_matches_for_team(team).sort_values("match_date")
+    df["home"] = df["home"].apply(lambda x: x.replace("_", " ").title())
+    df["away"] = df["away"].apply(lambda x: x.replace("_", " ").title())
+    df["match_date"] = df["match_date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+
     if df.shape[0] == 0:
         return "no data for this team"
     records = df.to_records(index=False)
-    return templates.TemplateResponse("passmap_team_index.html", {"request": request, 'team': team.title(), 'records': records})
+    return templates.TemplateResponse(
+        "passmap_team_index.html",
+        {"request": request, "team": team.title(), "records": records},
+    )
