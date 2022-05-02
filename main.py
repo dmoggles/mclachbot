@@ -9,8 +9,11 @@ import logging
 from data_models.constants import LEAGUE_NAME_TRANSLATIONS
 
 from data_models.data_generators import (
+    get_match_for_team_from_whoscored_for_date,
     get_teams_from_fbref,
     get_latest_match_for_team_from_whoscored,
+    get_whoscored_all_teams,
+    get_whoscored_matches_for_team,
     get_whoscored_position_df,
 )
 
@@ -83,10 +86,15 @@ def rolling_npxg_team_list(request: Request):
 
 @app.get("/passmap/{team}/{date}")
 def team_passmap(request: Request, team, date):
+    log = logging.getLogger(__name__)
+    
+    team = team.replace("_", " ").lower()
+    log.info(f"Getting pass map for {team} on {date}")
+    
     if date != "latest":
-        return "past dates not implemented yet"
-    team = team.replace("_", " ")
-    df = get_latest_match_for_team_from_whoscored(team)
+        df = get_match_for_team_from_whoscored_for_date(team, date)
+    else:
+        df = get_latest_match_for_team_from_whoscored(team)
     if df.shape[0] == 0:
         return "no data for this team"
 
@@ -99,11 +107,15 @@ def team_passmap(request: Request, team, date):
 @app.get("/playerpassmap/{team}/{date}")
 def player_passmap(request: Request, team, date):
     log = logging.getLogger(__name__)
-    team = team.replace("_", " ")
-    if date != "latest":
-        return "past dates not implemented yet"
+    team = team.replace("_", " ").lower()
+    log.info(f"Getting pass map for {team} on {date}")
     log.info(f"getting data for {team}")
-    df = get_latest_match_for_team_from_whoscored(team)
+    if date != "latest":
+        df = get_match_for_team_from_whoscored_for_date(team, date)
+    else:
+        df = get_latest_match_for_team_from_whoscored(team)
+   
+    
     log.info(f"got data for {team}")
     log.info("getting position dataframe")
     position_df = get_whoscored_position_df()
@@ -121,4 +133,20 @@ def player_passmap(request: Request, team, date):
 
 @app.get("/passmap")
 def passmaps_idx(request: Request):
-    return templates.TemplateResponse("passmap.html", {"request": request})
+    team_list = sorted([t.replace(' ','_') for t  in get_whoscored_all_teams()])
+    team_name_dictionary = {t: t.replace('_', ' ').title() for t in team_list}
+
+    return templates.TemplateResponse("passmap.html", {"request": request, 'teams': team_list, 'team_name_dict': team_name_dictionary})
+
+@app.get('/passmap/{team}')
+def passmap_team_page(request:Request, team:str):
+    team = team.replace('_',' ')
+    df = get_whoscored_matches_for_team(team).sort_values('match_date')
+    df['home']=df['home'].apply(lambda x: x.replace('_',' ').title())
+    df['away']=df['away'].apply(lambda x: x.replace('_',' ').title())
+    df['match_date']=df['match_date'].apply(lambda x: x.strftime('%Y-%m-%d'))
+    
+    if df.shape[0] == 0:
+        return "no data for this team"
+    records = df.to_records(index=False)
+    return templates.TemplateResponse("passmap_team_index.html", {"request": request, 'team': team.title(), 'records': records})

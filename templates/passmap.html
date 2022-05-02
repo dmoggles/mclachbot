@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>McLachBot</title>
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+</head>
+
+<body>
+    <header class="container">
+        <img src="{{ url_for('static',  path='/img/mclachbot.jpg' ) }}" alt="McLachBot Logo" class="logo" width="100"
+            height="100">
+        <h1>McLachBot</h1>
+    </header>
+    <main class="container">
+        <ul>
+            {% for team in teams %}
+
+            <li> <a href="{{ url_for('passmap_team_page', team=team ) }}">{{ team_name_dict[team] }}</a>
+
+            </li>
+
+            {% endfor %}
+        </ul>
+
+
+
+
+    </main>
+</body>
+
+</html>

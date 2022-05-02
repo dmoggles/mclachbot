@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>McLachBot</title>
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+</head>
+
+<body>
+    <header class="container">
+        <img src="{{ url_for('static',  path='/img/mclachbot.jpg' ) }}" alt="McLachBot Logo" class="logo" width="100"
+            height="100">
+        <h1>McLachBot</h1>
+    </header>
+    <main class="container">
+        <h1> {{ team }} </h1>
+        <table>
+            <tr>
+                <th>
+                    Date
+                </th>
+                <th>
+                    Home
+                </th>
+                <th>Score</th>
+                <th>Away</th>
+                <th>Team Passmap</th>
+                <th>Player Passmap</th>
+            </tr>
+            {% for record in records %}
+            <tr>
+                <td>
+                    {{ record.match_date }}
+                </td>
+                <td>
+                    {{ record.home }}
+                </td>
+                <td>
+                    {{ record.home_score }} - {{ record.away_score }}
+                </td>
+                <td>
+                    {{ record.away }}
+                </td>
+                <td>
+                    <a href="{{ url_for('team_passmap', team=team, date=record.match_date) }}">
+                        Team Passmap</a>
+                </td>
+                <td>
+                    <a href="{{ url_for('player_passmap', team=team, date=record.match_date) }}">
+                        Player Passmap</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+
+
+
+    </main>
+</body>
+
+</html>

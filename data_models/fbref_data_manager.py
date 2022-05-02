@@ -16,7 +16,7 @@ class ConnectionManager:
 
     def __init__(self):
         if not self._connection:
-            self._connection = self.create_engine("local", "Local1234!", "localhost", 3306, "football_data")
+            self._connection = self.create_engine("public", "M0neyMa$e", "5.2.16.131", 3306, "football_data")
 
     @property
     def engine(self):

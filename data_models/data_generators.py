@@ -98,10 +98,45 @@ WHERE main.matchId IN (
     df = pd.read_sql_query(query, ConnectionManager().engine)
     return df
 
+def get_match_for_team_from_whoscored_for_date(team: str, date: str):
+    log = logging.getLogger(__name__)
+    query = f"""
+SELECT main.x, main.y, main.endX, main.endY, main.player_name, main.event_type, main.outcomeType, main.team, main.opponent, main.match_date, main.is_home_team, main.satisfied_events,
+legacy.shirt_number, legacy.pass_receiver_shirt_number, legacy.pass_receiver, legacy.position, legacy.team_score, legacy.opponent_score, legacy.formation
+FROM whoscored AS main LEFT JOIN derived.whoscored_mclachbot_legacy_data AS legacy ON
+ main.matchId = legacy.matchId AND
+ main.id = legacy.id AND
+ main.eventId = legacy.eventId
+WHERE main.matchId IN (
+  SELECT matchId FROM whoscored_meta WHERE match_date = '{date}'
+  AND (home='{team}' or away='{team}')
+  ) and team = '{team}'
+"""
+    log.info(f'Running query: "{query}"')
+    df = pd.read_sql_query(query, ConnectionManager().engine)
+    return df
+
 
 def get_whoscored_position_df():
     log = logging.getLogger(__name__)
     query = "SELECT * FROM whoscored_positions"
+    log.info(f'Running query: "{query}"')
+    df = pd.read_sql_query(query, ConnectionManager().engine)
+    return df
+
+
+def get_whoscored_all_teams():
+    log = logging.getLogger(__name__)
+    query = "SELECT DISTINCT home FROM whoscored_meta"
+    log.info(f'Running query: "{query}"')
+    df = pd.read_sql_query(query, ConnectionManager().engine)
+    return df['home'].tolist()
+
+def get_whoscored_matches_for_team(team: str):
+    log = logging.getLogger(__name__)
+    query = f"""
+SELECT match_date, home, away, home_score, away_score FROM whoscored_meta WHERE home='{team}' or away='{team}'
+"""
     log.info(f'Running query: "{query}"')
     df = pd.read_sql_query(query, ConnectionManager().engine)
     return df
