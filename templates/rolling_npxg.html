@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>McLachBot</title>
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+</head>
+
+<body>
+    <header class="container">
+        <img src="{{ url_for('static',  path='/img/mclachbot.jpg' ) }}" alt="McLachBot Logo" class="logo" width="100"
+            height="100">
+        <h1>McLachBot</h1>
+    </header>
+    <main class="container">
+        {% for league in leagues %}
+        <h2>{{ league }}</h2>
+        <ul>
+            {% for team in leagues[league] %}
+            <li> {{ team_name_dict[team] }} -
+                {%for year in leagues[league][team]%}
+                <a href="{{ url_for('rolling_npxg', team=team, season=year, comp=league_link_lookup[league]) }}">{{ year
+                    }}</a>
+                {% endfor %}
+            </li>
+
+            {% endfor %}
+        </ul>
+
+        {% endfor %}
+
+
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>McLachBot</title>
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+</head>
+
+<body>
+    <header class="container">
+        <img src="{{ url_for('static',  path='/img/mclachbot.jpg' ) }}" alt="McLachBot Logo" class="logo" width="100"
+            height="100">
+        <h1>McLachBot</h1>
+    </header>
+    <main class="container">
+        <p>
+        <ul>
+            <li><a href="{{ url_for('rolling_npxg_idx') }}">Rolling NPXG</a></li>
+            <li><a href="{{ url_for('passmaps_idx') }}">Team Passing Networks</a></li>
+        </ul>
+        </p>
+    </main>
+</body>
+
+</html>

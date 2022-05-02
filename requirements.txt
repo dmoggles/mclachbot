@@ -1,0 +1,12 @@
+fastapi
+fastapi_utils
+jinja2
+uvicorn
+pyarrow
+sqlalchemy
+pypika
+mysqlclient
+unidecode
+cmasher
+mplsoccer
+git+https://github.com/dmoggles/footmav.git
