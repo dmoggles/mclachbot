@@ -7,9 +7,8 @@ from visualizations.passmap import player_passing_maps, plot_pass_map
 from matplotlib import pyplot as plt
 import logging
 from data_models.constants import LEAGUE_NAME_TRANSLATIONS
-import gc
-from functools import partial
-from multiprocessing import Process, Queue
+
+import os
 
 from data_models.data_generators import (
     get_match_for_team_from_whoscored_for_date,
@@ -31,11 +30,6 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
-
-
-@repeat_every(seconds=10)
-def remove_expired_tokens_task() -> None:
-    gc.collect()
 
 
 @app.get("/")
@@ -94,24 +88,36 @@ def team_passmap(request: Request, team, date):
     log.info(f"Getting pass map for {team} on {date}")
 
     if date != "latest":
-        df = get_match_for_team_from_whoscored_for_date(team, date)
+        
+        date_to_use = date
+    
     else:
         df = get_latest_match_for_team_from_whoscored(team)
-    if df.shape[0] == 0:
-        return "no data for this team"
+        date_to_use = df['match_date'].tolist()[0].strftime("%Y-%m-%d")
+        log.info(f"Using latest match for {team} on {date_to_use}")
 
-    fig = plot_pass_map(df)
-    output = BytesIO()
-    fig.savefig(output, format="png", pad_inches=0.1)
-    r = Response(output.getvalue(), media_type="image/png")
-    fig.clear()
-    plt.clf()
-    plt.close("all")
-    return r
+    
+    if not os.path.exists("static/img/visualisations/passmaps"):
+        os.makedirs("static/img/visualisations/passmaps")
+    output_file = f"static/img/visualisations/passmaps/{team}_{date_to_use.replace('-','_')}.png"
+    if not os.path.exists(output_file):
+        if date != "latest":
+            df = get_match_for_team_from_whoscored_for_date(team, date)
+        if df.shape[0] == 0:
+            return "no data for this team"
 
+        fig = plot_pass_map(df)
+    
+        fig.savefig(output_file, format="png", pad_inches=0.1)
+        fig.clear()
+        plt.clf()
+        plt.close("all")
+    with open(output_file, "rb") as f:
+        return Response(f.read(), media_type="image/png")
+    
+    
+    
 
-def put_on_queue(f, q):
-    q.put(f())
 
 
 @app.get("/playerpassmap/{team}/{date}")
@@ -121,33 +127,39 @@ def player_passmap(request: Request, team, date):
     log.info(f"Getting pass map for {team} on {date}")
     log.info(f"getting data for {team}")
     if date != "latest":
-        df = get_match_for_team_from_whoscored_for_date(team, date)
+        
+        date_to_use = date
+    
     else:
         df = get_latest_match_for_team_from_whoscored(team)
+        date_to_use = df['match_date'].tolist()[0].strftime("%Y-%m-%d")
+        log.info(f"Using latest match for {team} on {date_to_use}")
 
-    log.info(f"got data for {team}")
-    log.info("getting position dataframe")
-    position_df = get_whoscored_position_df()
-    log.info("got position dataframe")
-    if df.shape[0] == 0:
-        return "no data for this team"
+    
+    if not os.path.exists("static/img/visualisations/playerpassmaps"):
+        os.makedirs("static/img/visualisations/playerpassmaps")
+    output_file = f"static/img/visualisations/playerpassmaps/{team}_{date_to_use.replace('-','_')}.png"
+    
+    if not os.path.exists(output_file):
+        if date != "latest":
+            df = get_match_for_team_from_whoscored_for_date(team, date)
 
-    log.info("plotting")
-    # f = partial(player_passing_maps, df, position_df)
-    # q = Queue()
-    # p = Process(target=put_on_queue, args=(f, q))
-    # p.start()
-    # p.join()
-    # fig = q.get()
-    fig = player_passing_maps(df, position_df)
-    output = BytesIO()
-    log.info("saving")
-    fig.savefig(output, format="png", pad_inches=0.1)
-    r = Response(output.getvalue(), media_type="image/png")
-    fig.clear()
-    plt.clf()
-    plt.close("all")
-    return r
+        log.info(f"got data for {team}")
+        log.info("getting position dataframe")
+        position_df = get_whoscored_position_df()
+        log.info("got position dataframe")
+        if df.shape[0] == 0:
+            return "no data for this team"
+
+        log.info("plotting")
+        fig = player_passing_maps(df, position_df)
+        log.info("saving")
+        fig.savefig(output_file, format="png", pad_inches=0.1)
+        fig.clear()
+        plt.clf()
+        plt.close("all")
+    with open(output_file, "rb") as f:
+        return Response(f.read(), media_type="image/png")
 
 
 @app.get("/passmap")
