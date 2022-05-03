@@ -408,7 +408,6 @@ def plot_pass_map(game):
 
 
 def player_pass_map(game_data, player_name, ax, pitch: Pitch):
-    print(player_name)
     passes = game_data.loc[
         (game_data["player_name"] == player_name) & (game_data["event_type"] == 1)
     ]
