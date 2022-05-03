@@ -408,22 +408,32 @@ def plot_pass_map(game):
 
 
 def player_pass_map(game_data, player_name, ax, pitch: Pitch):
+    print(player_name)
     passes = game_data.loc[
         (game_data["player_name"] == player_name) & (game_data["event_type"] == 1)
     ]
     n_tot = len(passes)
     if n_tot < 1:
         return
-    position = game_data.loc[
+    position_array = game_data.loc[
         (game_data["player_name"] == player_name)
         & (~game_data["position"].isin(["Substitute", "Error"])),
         "position",
-    ].iloc[0]
-    number = game_data.loc[
+    ]
+    if position_array.shape[0]>0:
+        position = position_array.iloc[0]
+    else:
+        position = ""
+    number_array = game_data.loc[
         (game_data["player_name"] == player_name)
         & (~game_data["position"].isin(["Substitute", "Error"])),
         "shirt_number",
-    ].iloc[0]
+    ]
+    if number_array.shape[0]>0:
+        number = number_array.iloc[0]
+    else:
+        number = ""
+
     # print(passes['position'])
     # position = passes['position'].iloc[0]
     progressive_pass_mask = passes["progressive_pass"] == True
