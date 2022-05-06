@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>McLachBot</title>
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+
+    <style>
+        .colHeader {
+            color: lightgreen
+        }
+    </style>
+</head>
+
+<body>
+    <header class="container">
+        <img src="{{ url_for('static',  path='/img/mclachbot.jpg' ) }}" alt="McLachBot Logo" class="logo" width="100"
+            height="100">
+        <h1>McLachBot</h1>
+    </header>
+    <main class="container">
+        <h1>Finishing Over and Under Performance for {{ league_name}}</h1>
+        <p> The tables below show which players have enjoyed extremely good and extremely bad finishing this season.
+            We measure the finishing performance of a striker by comparing the number of goals they actually scored
+            (minus penalties)
+            to the <a
+                href='https://www.goal.com/en/news/what-is-xg-football-how-statistic-calculated/h42z0iiv8mdg1ub10iisg1dju'>xG</a>
+            value of the shots they have taken (the
+            <span class="colHeader">NPxG</span> column). The difference between the
+            two, which I call NPxGPlus
+            is divided by the number of shots taken to calculate
+            overperformance, or underperformance per shot taken (the <span class="colHeader">NPxGPlus/Shot</span>
+            column). We then compare their value
+            to the player's overall NPxG/Shot since 2017 (the <span class="colHeader">Difference</span> column). The
+            bigger the difference the more the
+            player is overperforming, or underperforming their long term trend.
+
+
+        </p>
+
+        <p>
+            The way to interpret this data, though is somewhat counterintuitive. A particularly strong overperforming
+            season from a player is not necessarily an indication of skill, because as I've discussed in <a
+                href='https://chicagodmitry.medium.com/on-orange-slices-hypothesis-checking-and-misfiring-strikers-cfeccec01b68'>this
+                article</a>, finishing is a high-variance skill subject to a lot of randomness, and even a season's
+            worth of overperformance is not enough to draw any conclusions. In fact, it is far more likely that a
+            footballer who is significantly overperforming his
+            long term trend is on a purple patch and will eventually come down back to earth, and it is not necessarily
+            possible to predict when that will happen. The <span class="colHeader">Confidence</span> column in the table
+            represents a statistical
+            measurement of certainty that this season's performance <u>does not</u> represent his true level.
+            A player who is scoring a lot of goals, but all of which are as
+            a result of significant NPxG overperformance is a far riskier bet than a player whose increase in goals has
+            come from a more rounded set of factors, such as getting more shot opportunities or getting shots from
+            better positions. But in some cases, it can be an indicator of emergent striker skill - for example if the
+            footballer is still
+            young and is deveoping or has limited previous track record - but its difficult to determine from data
+            whether that is the case, or if it is randomness, and should be supplemented with traditional scouting.
+
+        </p>
+
+        <p>
+            Likewise, a player who is underperforming his shooting trends significantly is likely simply going through
+            a random bad spell rather than declining in skill or having forgotten how to shoot.
+        </p>
+
+        <p>Clicking on a player's name will show a detailed chart of the evolution of their NPxGPlus/Shot since 2017 and
+            throughout this season.</p>
+
+        <table>
+            <caption><u>Overperforming Players</u></caption>
+            <tr>
+                <th><span class="colHeader">Player Name</span></th>
+                <th><span class="colHeader">Team</span></th>
+                <th><span class="colHeader">League</span></th>
+                <th><span class="colHeader">Shots</span></th>
+                <th><span class="colHeader">Goals (Excluding Penalties)</span></th>
+                <th><span class="colHeader">NPxG</span></th>
+                <th><span class="colHeader">NPxGPlus/Shot</span></th>
+                <th><span class="colHeader">Career NPxGPlus/Shot</span></th>
+                <th><span class="colHeader">Difference</span></th>
+                <th><span class="colHeader">Confidence</span></th>
+            </tr>
+            {% for record in records_overperform %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('striker_performance_player', league=league, player=record.player) }}"> {{
+                        record.player_display }}</a>
+                </td>
+                <td>
+                    {{ record.squad }}
+                </td>
+                <td>
+                    {{ record.comp }}
+                </td>
+                <td>
+                    {{ record.shots_total }}
+                </td>
+                <td>
+                    {{ record.non_penalty_goals }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxg) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxg_outperform_per_shot) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxg_plus_per_shot_cumulative) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxgplus_difference) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.confidence) }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <hr>
+        <table>
+            <caption><u>Underperforming Players</u></caption>
+            <tr>
+                <th><span class="colHeader">Player Name</span></th>
+                <th><span class="colHeader">Team</span></th>
+                <th><span class="colHeader">League</span></th>
+                <th><span class="colHeader">Shots</span></th>
+                <th><span class="colHeader">Goals (Excluding Penalties)</span></th>
+                <th><span class="colHeader">NPxG</span></th>
+                <th><span class="colHeader">NPxGPlus/Shot</span></th>
+                <th><span class="colHeader">Career NPxGPlus/Shot</span></th>
+                <th><span class="colHeader">Difference</span></th>
+                <th><span class="colHeader">Confidence</span></th>
+            </tr>
+            {% for record in records_underperform %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('striker_performance_player', league=league, player=record.player) }}">{{
+                        record.player_display }}</a>
+                </td>
+                <td>
+                    {{ record.squad }}
+                </td>
+                <td>
+                    {{ record.comp }}
+                </td>
+                <td>
+                    {{ record.shots_total }}
+                </td>
+                <td>
+                    {{ record.non_penalty_goals }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxg) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxg_outperform_per_shot) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxg_plus_per_shot_cumulative) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.npxgplus_difference) }}
+                </td>
+                <td>
+                    {{ "%.2f"| format(record.confidence) }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+
+    </main>
+</body>
+
+</html>

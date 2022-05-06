@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi_utils.tasks import repeat_every
+from data_models.striker_performance import get_striker_overperformance_summary, get_striker_performance_player_data
 from visualizations.passmap import player_passing_maps, plot_pass_map
 from matplotlib import pyplot as plt
 import logging
@@ -18,6 +19,7 @@ from data_models.data_generators import (
     get_whoscored_matches_for_team,
     get_whoscored_position_df,
 )
+from visualizations.striker_overperformance import plot_finishing_performance
 
 logging.basicConfig(
     level=logging.INFO,
@@ -192,3 +194,23 @@ def passmap_team_page(request: Request, team: str):
         "passmap_team_index.html",
         {"request": request, "team": team.title(), "records": records},
     )
+
+
+@app.get('/striker_performance/{league}')
+def striker_performance(request: Request, league: str):
+
+    over_df, under_df = get_striker_overperformance_summary(league_tag=league)
+    over_records = over_df.to_records(index=False)
+    under_records = under_df.to_records(index=False)
+    return templates.TemplateResponse("striker_performance.html", {"request": request, "records_overperform": over_records, "records_underperform":under_records, 'league': league, 'league_name': "European Men's Top 5 Leagues" if league=='EUROTOP5' else league})
+
+
+@app.get('/striker_performance/{league}/{player}')
+def striker_performance_player(request: Request, league: str, player:str):
+    full, this_season = get_striker_performance_player_data(league_tag=league, player=player)
+    fig = plot_finishing_performance(full, this_season, league)
+        
+    
+    output = BytesIO()
+    fig.savefig(output, format="png", pad_inches=0.1)
+    return Response(output.getvalue(), media_type="image/png")

@@ -14,9 +14,9 @@ class ConnectionManager:
     def create_engine(user, password, host, port, db):
         return create_engine("mysql://{0}:{1}@{2}:{3}/{4}?charset=utf8".format(user, password, host, port, db))
 
-    def __init__(self):
+    def __init__(self, database_name: str = 'football_data'):
         if not self._connection:
-            self._connection = self.create_engine("public", "M0neyMa$e", "5.2.16.131", 3306, "football_data")
+            self._connection = self.create_engine("public", "M0neyMa$e", "5.2.16.131", 3306, database_name)
 
     @property
     def engine(self):
