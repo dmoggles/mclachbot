@@ -110,15 +110,15 @@ def team_passmap(request: Request, team, date):
 
         fig = plot_pass_map(df)
     
-        #fig.savefig(output_file, format="png", pad_inches=0.1)
-        #fig.clear()
-        #plt.clf()
-        #plt.close("all")
-        output = BytesIO()
-        fig.savefig(output, format="png", pad_inches=0.1)
-        return Response(output.getvalue(), media_type="image/png")
-    #with open(output_file, "rb") as f:
-    #    return Response(f.read(), media_type="image/png")
+        fig.savefig(output_file, format="png", pad_inches=0.1)
+        fig.clear()
+        plt.clf()
+        plt.close("all")
+        #output = BytesIO()
+        #fig.savefig(output, format="png", pad_inches=0.1)
+        #return Response(output.getvalue(), media_type="image/png")
+    with open(output_file, "rb") as f:
+        return Response(f.read(), media_type="image/png")
     
     
     
@@ -159,15 +159,15 @@ def player_passmap(request: Request, team, date):
         log.info("plotting")
         fig = player_passing_maps(df, position_df)
         log.info("saving")
-        #fig.savefig(output_file, format="png", pad_inches=0.1)
-        #fig.clear()
-        #plt.clf()
-        #plt.close("all")
-        output = BytesIO()
-        fig.savefig(output, format="png", pad_inches=0.1)
-        return Response(output.getvalue(), media_type="image/png")
-    #with open(output_file, "rb") as f:
-    #    return Response(f.read(), media_type="image/png")
+        fig.savefig(output_file, format="png", pad_inches=0.1)
+        fig.clear()
+        plt.clf()
+        plt.close("all")
+        #output = BytesIO()
+        #fig.savefig(output, format="png", pad_inches=0.1)
+        r#eturn Response(output.getvalue(), media_type="image/png")
+    with open(output_file, "rb") as f:
+        return Response(f.read(), media_type="image/png")
 
 
 @app.get("/passmap")
