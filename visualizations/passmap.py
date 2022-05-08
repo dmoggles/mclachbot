@@ -18,6 +18,7 @@ from visualizations.constants import (
     pitch_distance,
     team_colors,
 )
+from visualizations.mplsoccer_helpers import make_grid
 
 
 URL = "https://github.com/googlefonts/roboto/blob/main/src/hinted/Roboto-Regular.ttf?raw=true"
@@ -231,7 +232,8 @@ def plot_pass_map(game):
     ) / pass_network["passes"].max() * (max_width - min_width)
 
     pitch = Pitch(pitch_type="opta", pitch_color="#000000", line_color="#c7d5cc")
-    fig, axs = pitch.grid(
+    fig, axs = make_grid(
+        pitch=pitch,
         left=0.2,
         grid_width=0.8,
         figheight=10,
@@ -553,7 +555,8 @@ def player_passing_maps(game, position_df):
     pitch = Pitch(
         pitch_type="opta", pitch_color="#000000", line_color="#c7d5cc", linewidth=1
     )
-    fig, axs = pitch.grid(
+    fig, axs = make_grid(
+        pitch=pitch,
         nrows=5,
         ncols=3,
         figheight=14,
