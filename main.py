@@ -165,7 +165,7 @@ def player_passmap(request: Request, team, date):
         plt.close("all")
         #output = BytesIO()
         #fig.savefig(output, format="png", pad_inches=0.1)
-        r#eturn Response(output.getvalue(), media_type="image/png")
+        #return Response(output.getvalue(), media_type="image/png")
     with open(output_file, "rb") as f:
         return Response(f.read(), media_type="image/png")
 

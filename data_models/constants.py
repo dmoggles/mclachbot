@@ -7,4 +7,5 @@ LEAGUE_NAME_TRANSLATIONS = {
     "ligue_1": "Ligue 1",
     "la_liga": "La Liga",
     "champions_league": "Champions League",
+    "europa_league": "Europa League",
 }
