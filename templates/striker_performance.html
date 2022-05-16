@@ -5,13 +5,34 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>McLachBot</title>
-    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+
 
     <style>
         .colHeader {
             color: lightgreen
         }
     </style>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.0/css/jquery.dataTables.css">
+
+    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" language="javascript"
+        src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+
+    <script type="text/javascript" class="init">
+
+
+        $(document).ready(function () {
+            $('table.display').DataTable({
+                order: [[9, 'desc']],
+            });
+        });
+
+
+
+    </script>
+
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+    <link href=" {{ url_for('static',  path='/css/datatables.css' ) }}" rel="stylesheet">
 </head>
 
 <body>
@@ -69,106 +90,114 @@
         <p>Clicking on a player's name will show a detailed chart of the evolution of their NPxGPlus/Shot since 2017 and
             throughout this season.</p>
 
-        <table>
+        <table id="table_2" class="display">
             <caption><u>Overperforming Players</u></caption>
-            <tr>
-                <th><span class="colHeader">Player Name</span></th>
-                <th><span class="colHeader">Team</span></th>
-                <th><span class="colHeader">League</span></th>
-                <th><span class="colHeader">Shots</span></th>
-                <th><span class="colHeader">Goals (Excluding Penalties)</span></th>
-                <th><span class="colHeader">NPxG</span></th>
-                <th><span class="colHeader">NPxGPlus/Shot</span></th>
-                <th><span class="colHeader">Career NPxGPlus/Shot</span></th>
-                <th><span class="colHeader">Difference</span></th>
-                <th><span class="colHeader">Confidence</span></th>
-            </tr>
-            {% for record in records_overperform %}
-            <tr>
-                <td>
-                    <a href="{{ url_for('striker_performance_player', league=league, player=record.player) }}"> {{
-                        record.player_display }}</a>
-                </td>
-                <td>
-                    {{ record.squad }}
-                </td>
-                <td>
-                    {{ record.comp }}
-                </td>
-                <td>
-                    {{ record.shots_total }}
-                </td>
-                <td>
-                    {{ record.non_penalty_goals }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxg) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxg_outperform_per_shot) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxg_plus_per_shot_cumulative) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxgplus_difference) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.confidence) }}
-                </td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th><span class="colHeader">Player Name</span></th>
+                    <th><span class="colHeader">Team</span></th>
+                    <th><span class="colHeader">League</span></th>
+                    <th><span class="colHeader">Shots</span></th>
+                    <th><span class="colHeader">Goals (Excluding Penalties)</span></th>
+                    <th><span class="colHeader">NPxG</span></th>
+                    <th><span class="colHeader">NPxGPlus/Shot</span></th>
+                    <th><span class="colHeader">Career NPxGPlus/Shot</span></th>
+                    <th><span class="colHeader">Difference</span></th>
+                    <th><span class="colHeader">Confidence</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records_overperform %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('striker_performance_player', league=league, player=record.player) }}"> {{
+                            record.player_display }}</a>
+                    </td>
+                    <td>
+                        {{ record.squad }}
+                    </td>
+                    <td>
+                        {{ record.comp }}
+                    </td>
+                    <td>
+                        {{ record.shots_total }}
+                    </td>
+                    <td>
+                        {{ record.non_penalty_goals }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxg) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxg_outperform_per_shot) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxg_plus_per_shot_cumulative) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxgplus_difference) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.confidence) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
         <hr>
-        <table>
+        <table id="table_1" class="display">
             <caption><u>Underperforming Players</u></caption>
-            <tr>
-                <th><span class="colHeader">Player Name</span></th>
-                <th><span class="colHeader">Team</span></th>
-                <th><span class="colHeader">League</span></th>
-                <th><span class="colHeader">Shots</span></th>
-                <th><span class="colHeader">Goals (Excluding Penalties)</span></th>
-                <th><span class="colHeader">NPxG</span></th>
-                <th><span class="colHeader">NPxGPlus/Shot</span></th>
-                <th><span class="colHeader">Career NPxGPlus/Shot</span></th>
-                <th><span class="colHeader">Difference</span></th>
-                <th><span class="colHeader">Confidence</span></th>
-            </tr>
-            {% for record in records_underperform %}
-            <tr>
-                <td>
-                    <a href="{{ url_for('striker_performance_player', league=league, player=record.player) }}">{{
-                        record.player_display }}</a>
-                </td>
-                <td>
-                    {{ record.squad }}
-                </td>
-                <td>
-                    {{ record.comp }}
-                </td>
-                <td>
-                    {{ record.shots_total }}
-                </td>
-                <td>
-                    {{ record.non_penalty_goals }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxg) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxg_outperform_per_shot) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxg_plus_per_shot_cumulative) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.npxgplus_difference) }}
-                </td>
-                <td>
-                    {{ "%.2f"| format(record.confidence) }}
-                </td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th><span class="colHeader">Player Name</span></th>
+                    <th><span class="colHeader">Team</span></th>
+                    <th><span class="colHeader">League</span></th>
+                    <th><span class="colHeader">Shots</span></th>
+                    <th><span class="colHeader">Goals (Excluding Penalties)</span></th>
+                    <th><span class="colHeader">NPxG</span></th>
+                    <th><span class="colHeader">NPxGPlus/Shot</span></th>
+                    <th><span class="colHeader">Career NPxGPlus/Shot</span></th>
+                    <th><span class="colHeader">Difference</span></th>
+                    <th><span class="colHeader">Confidence</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records_underperform %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('striker_performance_player', league=league, player=record.player) }}">{{
+                            record.player_display }}</a>
+                    </td>
+                    <td>
+                        {{ record.squad }}
+                    </td>
+                    <td>
+                        {{ record.comp }}
+                    </td>
+                    <td>
+                        {{ record.shots_total }}
+                    </td>
+                    <td>
+                        {{ record.non_penalty_goals }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxg) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxg_outperform_per_shot) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxg_plus_per_shot_cumulative) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.npxgplus_difference) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.confidence) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
 
 
