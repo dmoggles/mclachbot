@@ -62,6 +62,7 @@
                 <tr>
                     <th class="colHeader">Player</th>
                     <th class="colHeader">Team</th>
+                    <th>Qualifying minutes</th>
                     <th class="colHeader">Build Up Score</th>
                     <th class="colHeader">Turnovers</th>
                     <th class="colHeader">Progressive Carries</th>
@@ -84,6 +85,9 @@
                     </td>
                     <td>
                         {{ record.squad }}
+                    </td>
+                    <td>
+                        {{ "%.0f"| format(record.minutes) }}
                     </td>
                     <td>
                         {{ "%.2f"| format(record.build_up_score) }}

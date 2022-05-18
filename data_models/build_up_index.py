@@ -89,7 +89,7 @@ def get_build_up_index_table(league: str, season: int) -> pd.DataFrame:
         data.with_attributes([TURNOVER_AVOIDANCE, BUILD_UP_SCORE])
         .pipe(filter, [Filter(fb.POSITION, ["CM", "DM"], filters.StrContainsOneOf)])
         .pipe(aggregate_by, [fb.PLAYER])
-        .pipe(filter, [Filter(fb.MINUTES, 500, filters.GTE)])
+        .pipe(filter, [Filter(fb.MINUTES, 750, filters.GTE)])
         .pipe(per_90)
         .pipe(possession_adjust)
         .pipe(z_score)
@@ -103,12 +103,13 @@ def get_build_up_index_table(league: str, season: int) -> pd.DataFrame:
         data.with_attributes([TURNOVERS])
         .pipe(filter, [Filter(fb.POSITION, ["CM", "DM"], filters.StrContainsOneOf)])
         .pipe(aggregate_by, [fb.PLAYER])
-        .pipe(filter, [Filter(fb.MINUTES, 500, filters.GTE)])
+        .pipe(filter, [Filter(fb.MINUTES, 750, filters.GTE)])
         .pipe(per_90)
         .pipe(possession_adjust)
         .df[
             [
                 fb.PLAYER.N,
+                fb.MINUTES.N,
                 TURNOVERS.N,
                 fb.PROGRESSIVE_CARRIES.N,
                 fb.PROGRESSIVE_PASSES.N,
@@ -182,12 +183,23 @@ def get_build_up_index_pizza(league: str, season: int) -> pd.DataFrame:
             .query(columns=cols, league=league, season=season)
             .get()
         )
+    minutes = (
+        (
+            data.pipe(
+                filter, [Filter(fb.POSITION, ["CM", "DM"], filters.StrContainsOneOf)]
+            )
+            .pipe(aggregate_by, [fb.PLAYER])
+            .pipe(filter, [Filter(fb.MINUTES, 750, filters.GTE)])
+        )
+        .df[[fb.PLAYER.N, fb.MINUTES.N]]
+        .set_index(fb.PLAYER.N)
+    )
 
     build_up_index = (
         data.with_attributes([TURNOVER_AVOIDANCE, BUILD_UP_SCORE])
         .pipe(filter, [Filter(fb.POSITION, ["CM", "DM"], filters.StrContainsOneOf)])
         .pipe(aggregate_by, [fb.PLAYER])
-        .pipe(filter, [Filter(fb.MINUTES, 500, filters.GTE)])
+        .pipe(filter, [Filter(fb.MINUTES, 750, filters.GTE)])
         .pipe(per_90)
         .pipe(possession_adjust)
         .pipe(z_score)
@@ -206,8 +218,9 @@ def get_build_up_index_pizza(league: str, season: int) -> pd.DataFrame:
                 fb.PASSES_SWITCHES.N,
             ]
         ]
-        .sort_values(BUILD_UP_SCORE.N)
         .set_index(fb.PLAYER.N)
     )
-
+    build_up_index = pd.merge(
+        build_up_index, minutes, left_index=True, right_index=True, how="left"
+    )
     return build_up_index

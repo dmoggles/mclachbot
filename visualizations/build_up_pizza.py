@@ -23,7 +23,10 @@ def bake_build_up_pizza(player, build_up_index, season, league):
             "Roboto-Medium.ttf?raw=true"
         )
     )
-    data_only = build_up_index[[c for c in build_up_index.columns if c != fb.TEAM.N]]
+    minutes = int(build_up_index.loc[player, fb.MINUTES.N])
+    data_only = build_up_index[
+        [c for c in build_up_index.columns if c not in [fb.TEAM.N, fb.MINUTES.N]]
+    ]
 
     bg_color = "#EBEBE9"
     baker = PyPizza(
@@ -84,7 +87,7 @@ def bake_build_up_pizza(player, build_up_index, season, league):
     fig.text(
         0.515,
         0.975,
-        f"{player.title()} - {team.title()}",
+        f"{player.title()} - {team.title()}. Qualifying Minutes: {minutes}",
         size=16,
         ha="center",
         fontproperties=font_bold.prop,
