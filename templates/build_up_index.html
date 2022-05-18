@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>McLachBot</title>
+
+
+    <style>
+        .colHeader {
+            color: lightgreen
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.12.0/css/jquery.dataTables.css">
+
+    <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <script type="text/javascript" language="javascript"
+        src="https://cdn.datatables.net/1.12.0/js/jquery.dataTables.min.js"></script>
+
+    <script type="text/javascript" class="init">
+
+
+        $(document).ready(function () {
+            $('table.display').DataTable({
+                order: [[2, 'desc']],
+            });
+        });
+
+
+
+    </script>
+
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+    <link href=" {{ url_for('static',  path='/css/datatables.css' ) }}" rel="stylesheet">
+</head>
+
+<body>
+    <header class="container">
+        <a href="{{ url_for('root') }}">
+            <img src="{{ url_for('static',  path='/img/mclachbot.jpg' ) }}" alt="McLachBot Logo" class="logo"
+                width="100" height="100">
+        </a>
+        <h1>McLachBot</h1>
+    </header>
+    <main class="container">
+        <p>Build up Index table shows where midfielders from a selected league or combination of leagues rank in various
+            build-up related metrics to their peers.
+            It also displays <span class=colHeader>Build Up Score</span> which is a combination of relative rank of all
+            the metrics.
+        </p>
+        <p>
+            All metrics are per 90 minutes and adjusted for team possession.
+        </p>
+        <p>
+            Click on a footballer's name to generate a pizza chart for that player.
+        </p>
+
+        <table id="table_1" class="display">
+
+            <thead>
+                <tr>
+                    <th class="colHeader">Player</th>
+                    <th class="colHeader">Team</th>
+                    <th class="colHeader">Build Up Score</th>
+                    <th class="colHeader">Turnovers</th>
+                    <th class="colHeader">Progressive Carries</th>
+                    <th class="colHeader">Progressive Passes</th>
+                    <th class="colHeader">Carries Into Final Third</th>
+                    <th class="colHeader">Passes Into Final Third</th>
+                    <th class="colHeader">Touches in Mid Third</th>
+                    <th class="colHeader">Switches</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>
+                        <a
+                            href="{{ url_for('build_up_pizza_player',  player=record.player, year=year, league=league) }}">
+                            {{
+                            record.player_display }}</a>
+
+                    </td>
+                    <td>
+                        {{ record.squad }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.build_up_score) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.turnovers) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.progressive_carries) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.progressive_passes) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.carries_into_final_3rd) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.passes_into_final_third) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.touches_mid_3rd) }}
+                    </td>
+                    <td>
+                        {{ "%.2f"| format(record.passes_switches) }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+    </main>
+</body>

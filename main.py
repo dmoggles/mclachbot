@@ -3,7 +3,15 @@ from fastapi import FastAPI, Request, Response
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi_utils.tasks import repeat_every
-from data_models.striker_performance import get_striker_overperformance_summary, get_striker_performance_player_data
+from data_models.build_up_index import (
+    get_build_up_index_pizza,
+    get_build_up_index_table,
+)
+from data_models.striker_performance import (
+    get_striker_overperformance_summary,
+    get_striker_performance_player_data,
+)
+from visualizations.build_up_pizza import bake_build_up_pizza
 from visualizations.passmap import player_passing_maps, plot_pass_map
 from matplotlib import pyplot as plt
 import logging
@@ -90,18 +98,19 @@ def team_passmap(request: Request, team, date):
     log.info(f"Getting pass map for {team} on {date}")
 
     if date != "latest":
-        
+
         date_to_use = date
-    
+
     else:
         df = get_latest_match_for_team_from_whoscored(team)
-        date_to_use = df['match_date'].tolist()[0].strftime("%Y-%m-%d")
+        date_to_use = df["match_date"].tolist()[0].strftime("%Y-%m-%d")
         log.info(f"Using latest match for {team} on {date_to_use}")
 
-    
     if not os.path.exists("static/img/visualisations/passmaps"):
         os.makedirs("static/img/visualisations/passmaps")
-    output_file = f"static/img/visualisations/passmaps/{team}_{date_to_use.replace('-','_')}.png"
+    output_file = (
+        f"static/img/visualisations/passmaps/{team}_{date_to_use.replace('-','_')}.png"
+    )
     if not os.path.exists(output_file):
         if date != "latest":
             df = get_match_for_team_from_whoscored_for_date(team, date)
@@ -109,20 +118,16 @@ def team_passmap(request: Request, team, date):
             return "no data for this team"
 
         fig = plot_pass_map(df)
-    
+
         fig.savefig(output_file, format="png", pad_inches=0.1)
         fig.clear()
         plt.clf()
         plt.close("all")
-        #output = BytesIO()
-        #fig.savefig(output, format="png", pad_inches=0.1)
-        #return Response(output.getvalue(), media_type="image/png")
+        # output = BytesIO()
+        # fig.savefig(output, format="png", pad_inches=0.1)
+        # return Response(output.getvalue(), media_type="image/png")
     with open(output_file, "rb") as f:
         return Response(f.read(), media_type="image/png")
-    
-    
-    
-
 
 
 @app.get("/playerpassmap/{team}/{date}")
@@ -132,19 +137,18 @@ def player_passmap(request: Request, team, date):
     log.info(f"Getting pass map for {team} on {date}")
     log.info(f"getting data for {team}")
     if date != "latest":
-        
+
         date_to_use = date
-    
+
     else:
         df = get_latest_match_for_team_from_whoscored(team)
-        date_to_use = df['match_date'].tolist()[0].strftime("%Y-%m-%d")
+        date_to_use = df["match_date"].tolist()[0].strftime("%Y-%m-%d")
         log.info(f"Using latest match for {team} on {date_to_use}")
 
-    
     if not os.path.exists("static/img/visualisations/playerpassmaps"):
         os.makedirs("static/img/visualisations/playerpassmaps")
     output_file = f"static/img/visualisations/playerpassmaps/{team}_{date_to_use.replace('-','_')}.png"
-    
+
     if not os.path.exists(output_file):
         if date != "latest":
             df = get_match_for_team_from_whoscored_for_date(team, date)
@@ -163,9 +167,9 @@ def player_passmap(request: Request, team, date):
         fig.clear()
         plt.clf()
         plt.close("all")
-        #output = BytesIO()
-        #fig.savefig(output, format="png", pad_inches=0.1)
-        #return Response(output.getvalue(), media_type="image/png")
+        # output = BytesIO()
+        # fig.savefig(output, format="png", pad_inches=0.1)
+        # return Response(output.getvalue(), media_type="image/png")
     with open(output_file, "rb") as f:
         return Response(f.read(), media_type="image/png")
 
@@ -202,21 +206,63 @@ def passmap_team_page(request: Request, team: str):
     )
 
 
-@app.get('/striker_performance/{league}')
+@app.get("/striker_performance/{league}")
 def striker_performance(request: Request, league: str):
 
     over_df, under_df = get_striker_overperformance_summary(league_tag=league)
     over_records = over_df.to_records(index=False)
     under_records = under_df.to_records(index=False)
-    return templates.TemplateResponse("striker_performance.html", {"request": request, "records_overperform": over_records, "records_underperform":under_records, 'league': league, 'league_name': "European Men's Top 5 Leagues" if league=='EUROTOP5' else league})
+    return templates.TemplateResponse(
+        "striker_performance.html",
+        {
+            "request": request,
+            "records_overperform": over_records,
+            "records_underperform": under_records,
+            "league": league,
+            "league_name": "European Men's Top 5 Leagues"
+            if league == "EUROTOP5"
+            else league,
+        },
+    )
 
 
-@app.get('/striker_performance/{league}/{player}')
-def striker_performance_player(request: Request, league: str, player:str):
-    full, this_season = get_striker_performance_player_data(league_tag=league, player=player)
+@app.get("/striker_performance/{league}/{player}")
+def striker_performance_player(request: Request, league: str, player: str):
+    full, this_season = get_striker_performance_player_data(
+        league_tag=league, player=player
+    )
     fig = plot_finishing_performance(full, this_season, league)
-        
-    
+
     output = BytesIO()
     fig.savefig(output, format="png", pad_inches=0.1)
+    return Response(output.getvalue(), media_type="image/png")
+
+
+@app.get("/theoven")
+def theoven(request: Request):
+    year_dict = {
+        "Top 5 Mens League": [2017, 2018, 2019, 2020, 2021],
+        "WSL": [2018, 2019, 2020, 2021],
+        "MLS": [2018, 2019, 2020, 2021, 2022],
+    }
+    return templates.TemplateResponse(
+        "theoven.html", {"request": request, "years": year_dict}
+    )
+
+
+@app.get("/buildup_pizza/{league}/{year}")
+def buildup_pizza(request: Request, league: str, year: int):
+    build_up_index = get_build_up_index_table(league, year).to_records(index=True)
+    return templates.TemplateResponse(
+        "build_up_index.html",
+        {"request": request, "league": league, "year": year, "records": build_up_index},
+    )
+
+
+@app.get("/buildup_pizza/{league}/{year}/{player}")
+def build_up_pizza_player(request: Request, league: str, year: int, player: str):
+    build_up_index = get_build_up_index_pizza(league, year)
+    fig = bake_build_up_pizza(player, build_up_index, year, league)
+    output = BytesIO()
+    fig.savefig(output, format="png", pad_inches=0.0, facecolor="#EBEBE9")
     return Response(output.getvalue(), media_type="image/png")

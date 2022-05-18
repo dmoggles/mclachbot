@@ -10,3 +10,4 @@ unidecode
 cmasher
 mplsoccer
 git+https://github.com/dmoggles/footmav.git
+git+https://github.com/dmoggles/dbconnect.git

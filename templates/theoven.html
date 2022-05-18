@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>McLachBot</title>
+    <link href=" {{ url_for('static',  path='/css/pico.min.css' ) }}" rel="stylesheet">
+</head>
+
+<body>
+    <header class="container">
+        <a href="{{ url_for('root') }}">
+            <img src="{{ url_for('static',  path='/img/mclachbot.jpg' ) }}" alt="McLachBot Logo" class="logo"
+                width="100" height="100">
+        </a>
+        <h1>McLachBot</h1>
+    </header>
+    <main class="container">
+        <h2>Build Up Pizzas</h2>
+        <p>Build Up pizzas display the proficiency of midfielders at various metrics associated with build up in
+            comparison to their peers.</p>
+        <ul>
+            <li>Top 5 Men's European League
+                <ul>
+                    {% for year in years['Top 5 Mens League'] %}
+                    <li><a href="{{ url_for('buildup_pizza', league='Top 5 Mens League', year=year ) }}">{{ year }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>WSL
+                <ul>
+                    {% for year in years['WSL'] %}
+                    <li><a href="{{ url_for('buildup_pizza', league='WSL', year=year ) }}">{{ year }}</a> </li>
+                    {% endfor %}
+                </ul>
+            </li>
+            <li>MLS
+                <ul>
+                    {% for year in years['MLS'] %}
+                    <li><a href="{{ url_for('buildup_pizza', league='MLS', year=year ) }}">{{ year }}</a> </li>
+                    {% endfor %}
+                </ul>
+            </li>
+        </ul>
+    </main>
+</body>
