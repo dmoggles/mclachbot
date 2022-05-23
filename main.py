@@ -1,5 +1,5 @@
 from io import BytesIO
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, status
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi_utils.tasks import repeat_every
@@ -16,7 +16,7 @@ from visualizations.passmap import player_passing_maps, plot_pass_map
 from matplotlib import pyplot as plt
 import logging
 from data_models.constants import LEAGUE_NAME_TRANSLATIONS
-
+from functools import wraps
 import os
 
 from data_models.data_generators import (
@@ -34,21 +34,40 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[logging.FileHandler("debug.log"), logging.StreamHandler()],
 )
-
+logger = logging.getLogger(__name__)
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
+BLACKLISTED_IPs = ["54.36.149.5"]
+
+
+def check_blacklist(func):
+    @wraps(func)
+    def _inner(request: Request, *args, **kwargs):
+        ip = str(request.client.host)
+        print("IP:", ip)
+        if ip in BLACKLISTED_IPs:
+            logger.warn(f"{ip} is blacklisted")
+            data = f"IP {ip} is not allowed to access this resource."
+            return Response(content=data, status_code=status.HTTP_403_FORBIDDEN)
+        else:
+            return func(request, *args, **kwargs)
+
+    return _inner
+
 
 @app.get("/")
+@check_blacklist
 def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
 @app.get("/rolling_npxg/{comp}/{team}/{season}")
-def rolling_npxg(comp: str, team: str, season: int):
+@check_blacklist
+def rolling_npxg(request: Request, comp: str, team: str, season: int):
     if comp == "champions_league":
         rolling_window = 3
     else:
@@ -69,6 +88,7 @@ def rolling_npxg(comp: str, team: str, season: int):
 
 
 @app.get("/rolling_npxg")
+@check_blacklist
 def rolling_npxg_idx(request: Request):
 
     team_dictionary, team_name_dictionary = get_teams_from_fbref()
@@ -85,12 +105,14 @@ def rolling_npxg_idx(request: Request):
 
 
 @app.get("/rolling_npxg/teamlist")
+@check_blacklist
 def rolling_npxg_team_list(request: Request):
     team_dictionary, team_name_dictionary = get_teams_from_fbref()
     return team_dictionary
 
 
 @app.get("/passmap/{team}/{date}")
+@check_blacklist
 def team_passmap(request: Request, team, date):
     log = logging.getLogger(__name__)
 
@@ -131,6 +153,7 @@ def team_passmap(request: Request, team, date):
 
 
 @app.get("/playerpassmap/{team}/{date}")
+@check_blacklist
 def player_passmap(request: Request, team, date):
     log = logging.getLogger(__name__)
     team = team.replace("_", " ").lower()
@@ -174,9 +197,10 @@ def player_passmap(request: Request, team, date):
         return Response(f.read(), media_type="image/png")
 
 
-@app.get("/passmap")
-def passmaps_idx(request: Request):
-    team_list = sorted([t.replace(" ", "_") for t in get_whoscored_all_teams()])
+@app.get("/passmap_for_league/{league}/{season}")
+@check_blacklist
+def passmaps_idx(request: Request, league: str, season: int):
+    team_list = sorted([t.replace(" ", "_") for t in get_whoscored_all_teams(league, season)])
     team_name_dictionary = {t: t.replace("_", " ").title() for t in team_list}
 
     return templates.TemplateResponse(
@@ -190,6 +214,7 @@ def passmaps_idx(request: Request):
 
 
 @app.get("/passmap/{team}")
+@check_blacklist
 def passmap_team_page(request: Request, team: str):
     team = team.replace("_", " ")
     df = get_whoscored_matches_for_team(team).sort_values("match_date")
@@ -207,6 +232,7 @@ def passmap_team_page(request: Request, team: str):
 
 
 @app.get("/striker_performance/{league}")
+@check_blacklist
 def striker_performance(request: Request, league: str):
 
     over_df, under_df = get_striker_overperformance_summary(league_tag=league)
@@ -227,6 +253,7 @@ def striker_performance(request: Request, league: str):
 
 
 @app.get("/striker_performance/{league}/{player}")
+@check_blacklist
 def striker_performance_player(request: Request, league: str, player: str):
     full, this_season = get_striker_performance_player_data(
         league_tag=league, player=player
@@ -239,6 +266,7 @@ def striker_performance_player(request: Request, league: str, player: str):
 
 
 @app.get("/theoven")
+@check_blacklist
 def theoven(request: Request):
     year_dict = {
         "Top 5 Mens League": [2017, 2018, 2019, 2020, 2021],
@@ -251,6 +279,7 @@ def theoven(request: Request):
 
 
 @app.get("/buildup_pizza/{league}/{year}")
+@check_blacklist
 def buildup_pizza(request: Request, league: str, year: int):
     build_up_index = get_build_up_index_table(league, year).to_records(index=True)
     return templates.TemplateResponse(
@@ -260,7 +289,9 @@ def buildup_pizza(request: Request, league: str, year: int):
 
 
 @app.get("/buildup_pizza/{league}/{year}/{player}")
+@check_blacklist
 def build_up_pizza_player(request: Request, league: str, year: int, player: str):
+    print(str(request.client.host))
     build_up_index = get_build_up_index_pizza(league, year)
     fig = bake_build_up_pizza(player, build_up_index, year, league)
     output = BytesIO()

@@ -135,9 +135,9 @@ def get_whoscored_position_df():
     return df
 
 
-def get_whoscored_all_teams():
+def get_whoscored_all_teams(league, season):
     log = logging.getLogger(__name__)
-    query = "SELECT DISTINCT home FROM whoscored_meta WHERE match_date > '2021-08-01'"
+    query = f"SELECT DISTINCT home FROM whoscored_meta WHERE season={season} and comp = '{league}'"
     log.info(f'Running query: "{query}"')
     df = pd.read_sql_query(query, ConnectionManager().engine)
     return df["home"].tolist()

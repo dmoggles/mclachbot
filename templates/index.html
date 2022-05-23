@@ -18,7 +18,11 @@
         <p>
         <ul>
             <li><a href="{{ url_for('rolling_npxg_idx') }}">Rolling NPXG</a></li>
-            <li><a href="{{ url_for('passmaps_idx') }}">Team Passing Networks</a></li>
+            <li>Team Passing Networks:
+                <ul>
+                    <li> <a href="{{ url_for('passmaps_idx', league='EPL', season='2021') }}"> EPL</a></li>
+                    <li><a href="{{ url_for('passmaps_idx', league='MLS', season='2022') }}"> MLS</a></li>
+                </ul>
             <li>Overperforming and Underperforming Strikers
                 <ul>
                     <li><a href="{{ url_for('striker_performance', league='EUROTOP5') }}">Men's European Top 5
