@@ -18,6 +18,7 @@ from visualizations.constants import (
     pitch_distance,
     team_colors,
 )
+import os
 from visualizations.mplsoccer_helpers import make_grid
 
 
@@ -68,18 +69,34 @@ def plot_pass_map(game):
     max_width = 20
     MIN_TRANSPARENCY = 0.3
     team = game["team"].unique().tolist()[0]
+    comp = game["competition"].unique().tolist()[0]
     opponent = game["opponent"].unique().tolist()[0]
     game["home_away"] = game["is_home_team"].apply(lambda x: "home" if x else "away")
     home_away = game["home_away"].unique().tolist()[0]
     min_passes_to_show = 1 if team == "burnley" else 3
+    dir = os.path.dirname(__file__)
+    team_dotless = team.replace(".", "")
+    opponent_dotless = opponent.replace(".", "")
     team_img = Image.open(
-        urlopen(
-            f'https://s10.gifyu.com/images/{img_file_translates.get(team, team).lower().replace(" ","_")}.png'
+        os.path.join(
+            dir,
+            "..",
+            "static",
+            "img",
+            "teams",
+            comp.lower(),
+            f'{img_file_translates.get(team_dotless, team_dotless).lower().replace(" ", "_")}.png',
         )
     )
     opp_img = Image.open(
-        urlopen(
-            f'https://s10.gifyu.com/images/{img_file_translates.get(opponent, opponent).lower().replace(" ","_")}.png'
+        os.path.join(
+            dir,
+            "..",
+            "static",
+            "img",
+            "teams",
+            comp.lower(),
+            f'{img_file_translates.get(opponent_dotless, opponent_dotless).lower().replace(" ", "_")}.png',
         )
     )
 
@@ -421,7 +438,7 @@ def player_pass_map(game_data, player_name, ax, pitch: Pitch):
         & (~game_data["position"].isin(["Substitute", "Error"])),
         "position",
     ]
-    if position_array.shape[0]>0:
+    if position_array.shape[0] > 0:
         position = position_array.iloc[0]
     else:
         position = ""
@@ -430,7 +447,7 @@ def player_pass_map(game_data, player_name, ax, pitch: Pitch):
         & (~game_data["position"].isin(["Substitute", "Error"])),
         "shirt_number",
     ]
-    if number_array.shape[0]>0:
+    if number_array.shape[0] > 0:
         number = number_array.iloc[0]
     else:
         number = ""
@@ -514,6 +531,7 @@ def player_passing_maps(game, position_df):
         lambda x: x.replace("-", "")
     )
     team = game["team"].unique().tolist()[0]
+    comp = game["competition"].unique().tolist()[0]
     opponent = game["opponent"].unique().tolist()[0]
     game["home_away"] = game["is_home_team"].apply(lambda x: "home" if x else "away")
     home_away = game["home_away"].unique().tolist()[0]
@@ -650,14 +668,29 @@ def player_passing_maps(game, position_df):
         fontproperties=robotto_regular.prop,
         fontsize=18,
     )
+    dir = os.path.dirname(__file__)
+    team_dotless = team.replace(".", "")
+    opponent_dotless = opponent.replace(".", "")
     team_img = Image.open(
-        urlopen(
-            f'https://s10.gifyu.com/images/{img_file_translates.get(team, team).lower().replace(" ","_")}.png'
+        os.path.join(
+            dir,
+            "..",
+            "static",
+            "img",
+            "teams",
+            comp.lower(),
+            f'{img_file_translates.get(team_dotless, team_dotless).lower().replace(" ", "_")}.png',
         )
     )
     opp_img = Image.open(
-        urlopen(
-            f'https://s10.gifyu.com/images/{img_file_translates.get(opponent, opponent).lower().replace(" ","_")}.png'
+        os.path.join(
+            dir,
+            "..",
+            "static",
+            "img",
+            "teams",
+            comp.lower(),
+            f'{img_file_translates.get(opponent_dotless, opponent_dotless).lower().replace(" ", "_")}.png',
         )
     )
     add_image(team_img, fig, left=0.05, bottom=0.95, width=0.05)

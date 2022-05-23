@@ -91,7 +91,7 @@ def get_latest_match_for_team_from_whoscored(team: str):
     match_id = pd.read_sql_query(first_query, engine)["matchId"].tolist()[0]
 
     query = f"""
-SELECT main.x, main.y, main.endX, main.endY, main.player_name, main.event_type, main.outcomeType, main.team, main.opponent, main.match_date, main.is_home_team, main.satisfied_events,
+SELECT main.x, main.y, main.endX, main.endY, main.player_name, main.event_type, main.outcomeType, main.team, main.competition, main.opponent, main.match_date, main.is_home_team, main.satisfied_events,
 legacy.shirt_number, legacy.pass_receiver_shirt_number, legacy.pass_receiver, legacy.position, legacy.team_score, legacy.opponent_score, legacy.formation
 FROM whoscored AS main LEFT JOIN derived.whoscored_mclachbot_legacy_data AS legacy ON
  main.id = legacy.id 
@@ -115,7 +115,7 @@ def get_match_for_team_from_whoscored_for_date(team: str, date: str):
     match_id = pd.read_sql_query(first_query, engine)["matchId"].tolist()[0]
 
     query = f"""
-SELECT main.x, main.y, main.endX, main.endY, main.player_name, main.event_type, main.outcomeType, main.team, main.opponent, main.match_date, main.is_home_team, main.satisfied_events,
+SELECT main.x, main.y, main.endX, main.endY, main.player_name, main.event_type, main.outcomeType, main.team, main.competition, main.opponent, main.match_date, main.is_home_team, main.satisfied_events,
 legacy.shirt_number, legacy.pass_receiver_shirt_number, legacy.pass_receiver, legacy.position, legacy.team_score, legacy.opponent_score, legacy.formation
 FROM whoscored AS main LEFT JOIN derived.whoscored_mclachbot_legacy_data AS legacy ON
  main.id = legacy.id
