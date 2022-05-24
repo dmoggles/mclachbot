@@ -573,19 +573,6 @@ def player_passing_maps(game, position_df):
     pitch = Pitch(
         pitch_type="opta", pitch_color="#000000", line_color="#c7d5cc", linewidth=1
     )
-    fig, axs = make_grid(
-        pitch=pitch,
-        nrows=5,
-        ncols=3,
-        figheight=14,
-        title_space=0.025,
-        title_height=0.06,
-        endnote_height=0.03,
-        grid_height=0.875,
-        axis=False,
-    )
-    axs["title"].set_facecolor("#000000")
-    fig.set_facecolor("#000000")
 
     subs = game.loc[game["event_type"] == 19, "player_name"]
     names_position_list = (
@@ -607,6 +594,33 @@ def player_passing_maps(game, position_df):
         + subs.tolist()
     )
 
+    if len(names) > 14:
+        fig, axs = make_grid(
+            pitch=pitch,
+            nrows=6,
+            ncols=3,
+            figheight=14,
+            title_space=0.025,
+            title_height=0.06,
+            endnote_height=0.03,
+            grid_height=0.875,
+            axis=False,
+        )
+    else:
+        fig, axs = make_grid(
+            pitch=pitch,
+            nrows=5,
+            ncols=3,
+            figheight=14,
+            title_space=0.025,
+            title_height=0.06,
+            endnote_height=0.03,
+            grid_height=0.875,
+            axis=False,
+        )
+    axs["title"].set_facecolor("#000000")
+    fig.set_facecolor("#000000")
+
     for i, name in enumerate(names):
         r_i = int(math.floor(i / 3))
         r_j = i % 3
@@ -625,14 +639,14 @@ def player_passing_maps(game, position_df):
     kde = pitch.kdeplot(
         game.loc[successful_pass_mask]["endX"],
         game.loc[successful_pass_mask]["endY"],
-        ax=axs["pitch"][4][2],
+        ax=axs["pitch"][r_i][2],
         levels=50,
         shade=True,
         cmap=cmr.amber,
         thresh=0.1,
         alpha=0.8,
     )
-    axs["pitch"][4][2].text(
+    axs["pitch"][r_i][2].text(
         0,
         107,
         f"Passes Received Locations",
